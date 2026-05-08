@@ -4,38 +4,45 @@ import { Pool } from 'pg';
 
 const runtimeDatabaseUrl = process.env.DATABASE_URL;
 
-if (!runtimeDatabaseUrl) {
-  throw new Error('Missing DATABASE_URL for Prisma runtime client');
-}
-
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-  pool: Pool | undefined;
+  prisma: PrismaClient | null | undefined;
+  pool: Pool | null | undefined;
 };
 
-// Create the connection pool
-const pool =
-  globalForPrisma.pool ??
-  new Pool({
-    connectionString: runtimeDatabaseUrl,
-    // Prisma v7 uses the driver pool defaults; set explicit timeouts to avoid hanging connects.
-    connectionTimeoutMillis: 5_000,
-    idleTimeoutMillis: 300_000,
-  });
+let pool: Pool | null = null;
+let prisma: PrismaClient | null = null;
 
-// Setup the adapter
-const adapter = new PrismaPg(pool);
+if (runtimeDatabaseUrl) {
+  pool =
+    globalForPrisma.pool ??
+    new Pool({
+      connectionString: runtimeDatabaseUrl,
+      // Prisma v7 uses the driver pool defaults; set explicit timeouts to avoid hanging connects.
+      connectionTimeoutMillis: 5_000,
+      idleTimeoutMillis: 300_000,
+    });
 
-// Initialize PrismaClient with the adapter
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    adapter,
-    log:
-      process.env.NODE_ENV === 'development'
-        ? ['query', 'error', 'warn']
-        : ['error'],
-  });
+  const adapter = new PrismaPg(pool);
+
+  prisma =
+    globalForPrisma.prisma ??
+    new PrismaClient({
+      adapter,
+      log:
+        process.env.NODE_ENV === 'development'
+          ? ['query', 'error', 'warn']
+          : ['error'],
+    });
+}
+
+export { prisma };
+
+export function getPrisma(): PrismaClient {
+  if (!runtimeDatabaseUrl || !prisma) {
+    throw new Error('Missing DATABASE_URL for Prisma runtime client');
+  }
+  return prisma;
+}
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;

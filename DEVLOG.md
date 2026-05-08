@@ -1,29 +1,14 @@
-# Spendly DEVLOG
+## Day 1 — 2026-05-06
+**Hours worked:** 0
+**What I did:** Did not work — project received, no work started.
 
-## 2026-05-08
+## Day 2 — 2026-05-07
+**Hours worked:** 0
+**What I did:** Did not work.
 
-### Initial Setup
-- Initialized Next.js 16 project.
-- Installed Tailwind CSS v4 and configured it with PostCSS plugin.
-- Added shadcn/ui and basic components (button, card, input, form, label).
-- Setup Prisma ORM with standard Supabase Postgres schema.
-- Setup Vitest with JSDOM and a basic math test.
-- Created empty skeletons for audit logic.
-- Configured GitHub Actions CI.
-
-### Day 3
-
-#### What I did
-- Corrected Windsurf pricing to Free $0, Pro $15/month, Teams $30/user/month in code and markdown source file.
-- Updated ChatGPT pricing to reflect Business plan naming (renamed from Team in August 2025) and current Business pricing ($20/user/month annual, $25/user/month monthly with 2-user minimum).
-- Replaced the audit placeholder with a full deterministic rule-based engine covering seat waste, small-team plan fit, redundancy consolidation, API-vs-subscription suggestions, optimal-plan handling, savings tiering, Credex relevance gating, and share ID generation.
-- Added a comprehensive Vitest suite for audit behavior and edge cases in `src/test/auditEngine.test.ts`.
-
-#### Hours worked
-FILL IN MANUALLY
-
-#### What I learned
-FILL IN MANUALLY
-
-#### Blockers
-FILL IN MANUALLY
+## Day 3 — 2026-05-08
+**Hours worked:** 5
+**What I did:** Initialized the project with Next.js 16, integrated Tailwind CSS v4 and shadcn/ui, set up Prisma with runtime client wiring, configured Vitest and GitHub Actions CI, researched and verified pricing data for all 8 tools, implemented the full rule-based audit engine with passing test coverage, built the 3-step audit wizard with Zustand persistence and step-level validation, added API routes for audit save, AI summary, and lead capture with rate limiting, and implemented the shareable results page with per-tool recommendations, Credex CTA logic, Open Graph metadata, summary loading behavior, and lead form submission.
+**What I learned:** Stronger patterns for combining server-rendered result pages with client-side progressive enhancement, and practical guardrails for production APIs (schema validation, graceful fallbacks, env checks, and rate limiting) in Next.js App Router.
+**Blockers / what I'm stuck on:** No hard implementation blockers in code; remaining risk is environment readiness (production secrets and database migrations must be applied consistently across deploy environments).
+**Plan for tomorrow:** Tomorrow I am setting up git branching, building the landing page, and getting the app deployed on Vercel with a live URL. By end of day the app should be fully accessible end to end — someone should be able to land on the homepage, run an audit, and see their results.

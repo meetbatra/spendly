@@ -15,15 +15,29 @@ model Audit {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  email     String
-  status    String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
-  result    Json?
+  shareId   String   @unique
+  tools     Json
+  auditResults Json
+  totalMonthlySavings Float
+  totalAnnualSavings  Float
+  summary   String?
+  useCase   String
+  teamSize  Int
+  savingsTier String
+
+  @@map("audits")
 }
 
 model Lead {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-  email     String   @unique
-  company   String?
-  name      String?
+  updatedAt DateTime @updatedAt
+  email     String
+  companyName String?
+  role      String?
+  teamSize  Int?
+  auditId   String
+  savingsTier String
+
+  @@map("leads")
 }
