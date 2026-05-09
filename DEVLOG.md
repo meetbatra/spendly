@@ -12,3 +12,10 @@
 **What I learned:** Stronger patterns for combining server-rendered result pages with client-side progressive enhancement, and practical guardrails for production APIs (schema validation, graceful fallbacks, env checks, and rate limiting) in Next.js App Router.
 **Blockers / what I'm stuck on:** No hard implementation blockers in code; remaining risk is environment readiness (production secrets and database migrations must be applied consistently across deploy environments).
 **Plan for tomorrow:** Tomorrow I am setting up git branching, building the landing page, and getting the app deployed on Vercel with a live URL. By end of day the app should be fully accessible end to end — someone should be able to land on the homepage, run an audit, and see their results.
+
+## Day 4 — 2026-05-09
+**Hours worked:** FILL IN MANUALLY
+**What I did:** Set up git branching by creating `develop` from `main`, pushing it to remote, creating `feature/landing-page` from `develop`, and building a complete responsive SaaS landing page for Spendly with navbar CTA, hero, how-it-works flow, mocked savings showcase, final CTA, and footer.
+**What I learned:** FILL IN MANUALLY
+**Blockers / what I'm stuck on:** FILL IN MANUALLY
+**Plan for tomorrow:** UI polish on audit form and results page, dynamic OG image, Vercel deployment.
