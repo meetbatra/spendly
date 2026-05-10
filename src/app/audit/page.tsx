@@ -204,22 +204,23 @@ export default function AuditPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background px-4 py-10">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Spend Audit Setup</h1>
-          <p className="text-sm text-muted-foreground">
+    <div className="min-h-screen bg-background relative overflow-hidden pt-[100px] pb-20 px-4">
+      {/* Background elements */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(150,150,150,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(150,150,150,0.1)_1px,transparent_1px)] bg-[size:40px_40px] opacity-50 pointer-events-none"></div>
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-[#007AFF] rounded-full blur-[150px] opacity-[0.05] pointer-events-none"></div>
+      
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 relative z-10">
+        <div className="space-y-3 text-center mb-4">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Spend Audit Setup</h1>
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
             Tell us about your team and AI stack. We&apos;ll generate optimization recommendations in seconds.
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Progress</CardTitle>
-            <CardDescription>Step {step} of 3</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 md:grid-cols-3">
+        <Card className="border-border-subtle bg-surface-dim/50 backdrop-blur-md shadow-xl overflow-hidden">
+          <CardContent className="p-0">
+            {/* Stepper Header */}
+            <div className="flex border-b border-border-subtle bg-background/50">
               {STEP_TITLES.map((title, index) => {
                 const stepNumber = (index + 1) as 1 | 2 | 3;
                 const active = stepNumber === step;
@@ -229,226 +230,242 @@ export default function AuditPage() {
                   <div
                     key={title}
                     className={cn(
-                      'rounded-lg border px-3 py-2 text-sm transition-colors',
-                      complete && 'border-primary/30 bg-primary/10 text-primary',
-                      active && 'border-primary bg-primary/5 text-foreground',
-                      !active && !complete && 'border-border text-muted-foreground',
+                      'flex-1 p-4 text-center transition-colors border-r last:border-r-0 border-border-subtle',
+                      active ? 'bg-surface-dim shadow-[inset_0_-2px_0_#007AFF]' : 'opacity-60',
                     )}
                   >
-                    <div className="text-xs font-medium uppercase tracking-wide">Step {stepNumber}</div>
-                    <div className="font-medium">{title}</div>
+                    <div className={cn(
+                      "text-xs font-semibold tracking-wider uppercase mb-1 transition-colors",
+                      active || complete ? "text-[#007AFF]" : "text-muted-foreground"
+                    )}>
+                      Step {stepNumber}
+                    </div>
+                    <div className={cn(
+                      "font-medium text-sm transition-colors",
+                      active ? "text-foreground" : "text-muted-foreground"
+                    )}>
+                      {title}
+                    </div>
                   </div>
                 );
               })}
             </div>
+
+            <div className="p-6 md:p-8">
+              {step === 1 && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-1 mb-6">
+                    <h2 className="text-2xl font-semibold">Team Context</h2>
+                    <p className="text-muted-foreground">Set your team size and primary use case.</p>
+                  </div>
+                  
+                  <form className="space-y-6" onSubmit={teamContextForm.handleSubmit(onTeamContextSubmit)}>
+                    <div className="space-y-3">
+                      <Label htmlFor="teamSize" className="text-sm font-medium">Team Size</Label>
+                      <Input
+                        id="teamSize"
+                        type="number"
+                        min={1}
+                        className="bg-background/50 border-border-subtle focus-visible:ring-[#007AFF]/50 focus-visible:border-[#007AFF] transition-all h-12"
+                        {...teamContextForm.register('teamSize', { valueAsNumber: true })}
+                      />
+                      {teamContextForm.formState.errors.teamSize && (
+                        <p className="text-sm text-destructive">{teamContextForm.formState.errors.teamSize.message}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label htmlFor="useCase" className="text-sm font-medium">Primary Use Case</Label>
+                      <select
+                        id="useCase"
+                        className="h-12 w-full rounded-lg border border-border-subtle bg-background/50 px-3 text-sm outline-none transition-all focus-visible:border-[#007AFF] focus-visible:ring-3 focus-visible:ring-[#007AFF]/50 text-foreground"
+                        {...teamContextForm.register('useCase')}
+                      >
+                        <option value="">Select a use case</option>
+                        {USE_CASE_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {titleCase(option)}
+                          </option>
+                        ))}
+                      </select>
+                      {teamContextForm.formState.errors.useCase && (
+                        <p className="text-sm text-destructive">{teamContextForm.formState.errors.useCase.message}</p>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end pt-4 border-t border-border-subtle">
+                      <Button type="submit" size="lg" className="bg-[#007AFF] text-white hover:bg-blue-600 shadow-[0_0_15px_rgba(0,122,255,0.3)] rounded-full px-8">
+                        Next Step <span className="material-symbols-outlined ml-2 text-[20px]">arrow_forward</span>
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-1 mb-6">
+                    <h2 className="text-2xl font-semibold">Tool Selection</h2>
+                    <p className="text-muted-foreground">Choose every AI tool your team currently pays for.</p>
+                  </div>
+                  
+                  <form className="space-y-6" onSubmit={toolSelectionForm.handleSubmit(onToolSelectionSubmit)}>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {TOOLS.map((tool) => {
+                        const isSelected = selectedTools.includes(tool.toolId);
+
+                        return (
+                          <button
+                            key={tool.toolId}
+                            type="button"
+                            onClick={() => {
+                              toggleTool(tool.toolId);
+                              const next = isSelected
+                                ? selectedTools.filter((id) => id !== tool.toolId)
+                                : [...selectedTools, tool.toolId];
+                              toolSelectionForm.setValue('selectedTools', next, { shouldValidate: true });
+                            }}
+                            className={cn(
+                              'group relative rounded-xl border p-5 text-left transition-all duration-300',
+                              isSelected 
+                                ? 'bg-[#007AFF]/10 border-[#007AFF] shadow-[0_0_20px_rgba(0,122,255,0.15)]' 
+                                : 'bg-background/40 border-border-subtle hover:bg-surface-dim hover:border-border hover:-translate-y-1 hover:shadow-lg',
+                            )}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <p className={cn("font-semibold", isSelected ? "text-[#007AFF]" : "text-foreground")}>{tool.displayName}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">{tool.vendor}</p>
+                              </div>
+                              <div className={cn(
+                                "flex size-6 items-center justify-center rounded-full border transition-all duration-300",
+                                isSelected ? "bg-[#007AFF] border-[#007AFF] text-white" : "border-border-subtle text-transparent group-hover:border-border"
+                              )}>
+                                <Check className="size-3.5" />
+                              </div>
+                            </div>
+                            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{tool.description}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {toolSelectionForm.formState.errors.selectedTools && (
+                      <p className="text-sm text-destructive">
+                        {toolSelectionForm.formState.errors.selectedTools.message}
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between pt-4 border-t border-border-subtle">
+                      <Button type="button" variant="ghost" onClick={() => setStep(1)} className="rounded-full px-6 text-muted-foreground hover:text-foreground">
+                        Back
+                      </Button>
+                      <Button type="submit" size="lg" className="bg-[#007AFF] text-white hover:bg-blue-600 shadow-[0_0_15px_rgba(0,122,255,0.3)] rounded-full px-8">
+                        Next Step <span className="material-symbols-outlined ml-2 text-[20px]">arrow_forward</span>
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-1 mb-6">
+                    <h2 className="text-2xl font-semibold">Spend Details</h2>
+                    <p className="text-muted-foreground">
+                      Provide plan, seat count, and monthly spend for each selected tool.
+                    </p>
+                  </div>
+                  
+                  <form className="space-y-6" onSubmit={spendDetailsForm.handleSubmit(onSpendDetailsSubmit)}>
+                    <div className="space-y-4">
+                      {selectedTools.map((toolId) => {
+                        const tool = TOOLS.find((item) => item.toolId === toolId);
+                        const plans = PRICING_DATA[toolId].plans;
+
+                        return (
+                          <div key={toolId} className="rounded-xl border border-border-subtle bg-background/40 p-5 transition-all hover:border-border">
+                            <div className="mb-4">
+                              <p className="font-semibold text-foreground text-lg">{tool?.displayName}</p>
+                            </div>
+
+                            <div className="grid gap-4 md:grid-cols-3">
+                              <div className="space-y-2">
+                                <Label htmlFor={`${toolId}-plan`} className="text-xs font-medium text-muted-foreground">Plan</Label>
+                                <select
+                                  id={`${toolId}-plan`}
+                                  className="h-10 w-full rounded-lg border border-border-subtle bg-background/80 px-2.5 text-sm outline-none transition-all focus-visible:border-[#007AFF] focus-visible:ring-3 focus-visible:ring-[#007AFF]/50 text-foreground"
+                                  {...spendDetailsForm.register(`entries.${toolId}.planId`)}
+                                >
+                                  {plans.map((plan) => (
+                                    <option key={plan.planId} value={plan.planId}>
+                                      {plan.planName}
+                                    </option>
+                                  ))}
+                                </select>
+                                {spendDetailsForm.formState.errors.entries?.[toolId]?.planId && (
+                                  <p className="text-sm text-destructive">
+                                    {spendDetailsForm.formState.errors.entries[toolId]?.planId?.message}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor={`${toolId}-seats`} className="text-xs font-medium text-muted-foreground">Seats</Label>
+                                <Input
+                                  id={`${toolId}-seats`}
+                                  type="number"
+                                  min={1}
+                                  className="h-10 bg-background/80 border-border-subtle focus-visible:ring-[#007AFF]/50 focus-visible:border-[#007AFF]"
+                                  {...spendDetailsForm.register(`entries.${toolId}.seats`, {
+                                    valueAsNumber: true,
+                                  })}
+                                />
+                                {spendDetailsForm.formState.errors.entries?.[toolId]?.seats && (
+                                  <p className="text-sm text-destructive">
+                                    {spendDetailsForm.formState.errors.entries[toolId]?.seats?.message}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor={`${toolId}-monthlySpend`} className="text-xs font-medium text-muted-foreground">Monthly Spend ($)</Label>
+                                <Input
+                                  id={`${toolId}-monthlySpend`}
+                                  type="number"
+                                  min={0.01}
+                                  step="0.01"
+                                  className="h-10 bg-background/80 border-border-subtle focus-visible:ring-[#007AFF]/50 focus-visible:border-[#007AFF]"
+                                  {...spendDetailsForm.register(`entries.${toolId}.monthlySpend`, {
+                                    valueAsNumber: true,
+                                  })}
+                                />
+                                {spendDetailsForm.formState.errors.entries?.[toolId]?.monthlySpend && (
+                                  <p className="text-sm text-destructive">
+                                    {spendDetailsForm.formState.errors.entries[toolId]?.monthlySpend?.message}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-border-subtle">
+                      <Button type="button" variant="ghost" onClick={() => setStep(2)} className="rounded-full px-6 text-muted-foreground hover:text-foreground">
+                        Back
+                      </Button>
+                      <Button type="submit" size="lg" className="bg-[#007AFF] text-white hover:bg-blue-600 shadow-[0_0_20px_rgba(0,122,255,0.4)] rounded-full px-8">
+                        Run Optimization Audit <span className="material-symbols-outlined ml-2 text-[20px]">insights</span>
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
-
-        {step === 1 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Step 1: Team Context</CardTitle>
-              <CardDescription>Set your team size and primary use case.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form className="space-y-5" onSubmit={teamContextForm.handleSubmit(onTeamContextSubmit)}>
-                <div className="space-y-2">
-                  <Label htmlFor="teamSize">Team Size</Label>
-                  <Input
-                    id="teamSize"
-                    type="number"
-                    min={1}
-                    {...teamContextForm.register('teamSize', { valueAsNumber: true })}
-                  />
-                  {teamContextForm.formState.errors.teamSize && (
-                    <p className="text-sm text-destructive">{teamContextForm.formState.errors.teamSize.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="useCase">Primary Use Case</Label>
-                  <select
-                    id="useCase"
-                    className="h-8 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none transition focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                    {...teamContextForm.register('useCase')}
-                  >
-                    <option value="">Select a use case</option>
-                    {USE_CASE_OPTIONS.map((option) => (
-                      <option key={option} value={option}>
-                        {titleCase(option)}
-                      </option>
-                    ))}
-                  </select>
-                  {teamContextForm.formState.errors.useCase && (
-                    <p className="text-sm text-destructive">{teamContextForm.formState.errors.useCase.message}</p>
-                  )}
-                </div>
-
-                <div className="flex justify-end">
-                  <Button type="submit" size="lg">
-                    Next
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
-
-        {step === 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Step 2: Tool Selection</CardTitle>
-              <CardDescription>Choose every AI tool your team currently pays for.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form className="space-y-5" onSubmit={toolSelectionForm.handleSubmit(onToolSelectionSubmit)}>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {TOOLS.map((tool) => {
-                    const isSelected = selectedTools.includes(tool.toolId);
-
-                    return (
-                      <button
-                        key={tool.toolId}
-                        type="button"
-                        onClick={() => {
-                          toggleTool(tool.toolId);
-                          const next = isSelected
-                            ? selectedTools.filter((id) => id !== tool.toolId)
-                            : [...selectedTools, tool.toolId];
-                          toolSelectionForm.setValue('selectedTools', next, { shouldValidate: true });
-                        }}
-                        className={cn(
-                          'group relative rounded-xl border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md',
-                          isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-border',
-                        )}
-                      >
-                        {isSelected && (
-                          <span className="absolute top-3 right-3 inline-flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                            <Check className="size-3.5" />
-                          </span>
-                        )}
-                        <p className="text-sm font-semibold text-foreground">{tool.displayName}</p>
-                        <p className="text-xs text-muted-foreground">{tool.vendor}</p>
-                        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{tool.description}</p>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {toolSelectionForm.formState.errors.selectedTools && (
-                  <p className="text-sm text-destructive">
-                    {toolSelectionForm.formState.errors.selectedTools.message}
-                  </p>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <Button type="button" variant="outline" size="lg" onClick={() => setStep(1)}>
-                    Back
-                  </Button>
-                  <Button type="submit" size="lg">
-                    Next
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
-
-        {step === 3 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Step 3: Spend Details</CardTitle>
-              <CardDescription>
-                Provide plan, seat count, and monthly spend for each selected tool.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form className="space-y-4" onSubmit={spendDetailsForm.handleSubmit(onSpendDetailsSubmit)}>
-                {selectedTools.map((toolId) => {
-                  const tool = TOOLS.find((item) => item.toolId === toolId);
-                  const plans = PRICING_DATA[toolId].plans;
-
-                  return (
-                    <div key={toolId} className="rounded-xl border border-border bg-muted/20 p-4">
-                      <div className="mb-3 flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-foreground">{tool?.displayName}</p>
-                          <p className="text-xs text-muted-foreground">{tool?.vendor}</p>
-                        </div>
-                      </div>
-
-                      <div className="grid gap-3 md:grid-cols-3">
-                        <div className="space-y-2">
-                          <Label htmlFor={`${toolId}-plan`}>Plan</Label>
-                          <select
-                            id={`${toolId}-plan`}
-                            className="h-8 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none transition focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                            {...spendDetailsForm.register(`entries.${toolId}.planId`)}
-                          >
-                            {plans.map((plan) => (
-                              <option key={plan.planId} value={plan.planId}>
-                                {plan.planName}
-                              </option>
-                            ))}
-                          </select>
-                          {spendDetailsForm.formState.errors.entries?.[toolId]?.planId && (
-                            <p className="text-sm text-destructive">
-                              {spendDetailsForm.formState.errors.entries[toolId]?.planId?.message}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor={`${toolId}-seats`}>Seats</Label>
-                          <Input
-                            id={`${toolId}-seats`}
-                            type="number"
-                            min={1}
-                            {...spendDetailsForm.register(`entries.${toolId}.seats`, {
-                              valueAsNumber: true,
-                            })}
-                          />
-                          {spendDetailsForm.formState.errors.entries?.[toolId]?.seats && (
-                            <p className="text-sm text-destructive">
-                              {spendDetailsForm.formState.errors.entries[toolId]?.seats?.message}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor={`${toolId}-monthlySpend`}>Monthly Spend (USD)</Label>
-                          <Input
-                            id={`${toolId}-monthlySpend`}
-                            type="number"
-                            min={0.01}
-                            step="0.01"
-                            {...spendDetailsForm.register(`entries.${toolId}.monthlySpend`, {
-                              valueAsNumber: true,
-                            })}
-                          />
-                          {spendDetailsForm.formState.errors.entries?.[toolId]?.monthlySpend && (
-                            <p className="text-sm text-destructive">
-                              {spendDetailsForm.formState.errors.entries[toolId]?.monthlySpend?.message}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                <div className="flex items-center justify-between pt-2">
-                  <Button type="button" variant="outline" size="lg" onClick={() => setStep(2)}>
-                    Back
-                  </Button>
-                  <Button type="submit" size="lg">
-                    Run Audit
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );
