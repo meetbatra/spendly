@@ -43,6 +43,10 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+    --color-surface-dim: var(--surface-dim);
+    --color-surface-bright: var(--surface-bright);
+    --color-border-subtle: var(--border-subtle);
+    --color-error-red: var(--error-red);
 }
 
 :root {
@@ -78,6 +82,10 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+    --surface-dim: #F9F9F9;
+    --surface-bright: #FFFFFF;
+    --border-subtle: rgba(0, 0, 0, 0.08);
+    --error-red: #FF3B30;
 }
 
 .dark {
@@ -112,6 +120,10 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+    --surface-dim: #0F0F0F;
+    --surface-bright: #1A1A1A;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --error-red: #FF3B30;
 }
 
 @layer base {
@@ -124,4 +136,26 @@
   html {
     @apply font-sans;
     }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* When switching to dark mode, new (dark) is on top */
+.dark::view-transition-new(root) {
+  z-index: 999;
+}
+.dark::view-transition-old(root) {
+  z-index: 1;
+}
+
+/* When switching to light mode, old (dark) is on top */
+::view-transition-old(root) {
+  z-index: 999;
+}
+::view-transition-new(root) {
+  z-index: 1;
 }
