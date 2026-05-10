@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
@@ -46,12 +46,28 @@ const TOOL_SELECTION_SCHEMA = z.object({
 const TOOL_ENTRY_SCHEMA = z.object({
   planId: z.string().min(1, 'Plan is required.'),
   seats: z.number().min(1, 'Seats must be at least 1.'),
-  monthlySpend: z.number().min(0.01, 'Monthly spend is required.'),
+  monthlySpend: z.number().nonnegative('Monthly spend must be 0 or more.'),
 });
 
-const SPEND_DETAILS_SCHEMA = z.object({
-  entries: z.record(z.string(), TOOL_ENTRY_SCHEMA),
-});
+const SPEND_DETAILS_SCHEMA = z
+  .object({
+    entries: z.record(z.string(), TOOL_ENTRY_SCHEMA),
+  })
+  .superRefine((data, ctx) => {
+    for (const [toolKey, toolValue] of Object.entries(data.entries)) {
+      const toolId = toolKey as ToolId;
+      const plan = PRICING_DATA[toolId]?.plans.find((item) => item.planId === toolValue.planId);
+      const isFreePlan = (plan?.monthlyPricePerSeat ?? null) === 0;
+
+      if (!isFreePlan && toolValue.monthlySpend <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['entries', toolKey, 'monthlySpend'],
+          message: 'Monthly spend must be greater than $0 for paid plans.',
+        });
+      }
+    }
+  });
 
 type TeamContextValues = z.infer<typeof TEAM_CONTEXT_SCHEMA>;
 type ToolSelectionValues = z.infer<typeof TOOL_SELECTION_SCHEMA>;
@@ -66,6 +82,7 @@ function titleCase(value: string): string {
 export default function AuditPage() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     teamSize,
@@ -114,6 +131,10 @@ export default function AuditPage() {
     resolver: zodResolver(SPEND_DETAILS_SCHEMA),
     defaultValues: spendDetailsDefaults,
   });
+  const watchedEntries = useWatch({
+    control: spendDetailsForm.control,
+    name: 'entries',
+  });
 
   useEffect(() => {
     teamContextForm.reset({
@@ -129,6 +150,25 @@ export default function AuditPage() {
   useEffect(() => {
     spendDetailsForm.reset(spendDetailsDefaults);
   }, [spendDetailsDefaults, spendDetailsForm]);
+
+  useEffect(() => {
+    for (const toolId of selectedTools) {
+      const entry = watchedEntries?.[toolId];
+      if (!entry) {
+        continue;
+      }
+
+      const selectedPlan = PRICING_DATA[toolId].plans.find((plan) => plan.planId === entry.planId);
+      const isFreePlan = selectedPlan?.monthlyPricePerSeat === 0;
+
+      if (isFreePlan && entry.monthlySpend !== 0) {
+        spendDetailsForm.setValue(`entries.${toolId}.monthlySpend`, 0, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+    }
+  }, [selectedTools, spendDetailsForm, watchedEntries]);
 
   const onTeamContextSubmit = (values: TeamContextValues) => {
     setTeamSize(values.teamSize);
@@ -157,6 +197,8 @@ export default function AuditPage() {
   };
 
   const onSpendDetailsSubmit = async (values: SpendDetailsValues) => {
+    setSubmitError(null);
+
     const tools = selectedTools.map((toolId) => ({
       toolId,
       planId: values.entries[toolId].planId,
@@ -195,6 +237,19 @@ export default function AuditPage() {
           router.push(`/results/${data.shareId}`);
           return;
         }
+      }
+
+      if (response.status === 429) {
+        const resetHeader = response.headers.get('X-RateLimit-Reset');
+        const resetValue = resetHeader ? Number(resetHeader) : NaN;
+
+        let waitHint = '';
+        if (!Number.isNaN(resetValue) && resetValue > 0) {
+          waitHint = ' Please retry after the rate-limit window resets.';
+        }
+
+        setSubmitError(`Too many audit attempts from your network.${waitHint}`);
+        return;
       }
     } catch {
       // Fall back to local shareId for navigation if API save fails.
@@ -382,6 +437,10 @@ export default function AuditPage() {
                       {selectedTools.map((toolId) => {
                         const tool = TOOLS.find((item) => item.toolId === toolId);
                         const plans = PRICING_DATA[toolId].plans;
+                        const selectedPlanId = spendDetailsForm.getValues(`entries.${toolId}.planId`);
+                        const selectedPlan = plans.find((plan) => plan.planId === selectedPlanId);
+                        const isFreePlan = selectedPlan?.monthlyPricePerSeat === 0;
+                        const minSpend = selectedPlan?.monthlyPricePerSeat === 0 ? 0 : 0.01;
 
                         return (
                           <div key={toolId} className="rounded-xl border border-border-subtle bg-background/40 p-5 transition-all hover:border-border">
@@ -433,13 +492,24 @@ export default function AuditPage() {
                                 <Input
                                   id={`${toolId}-monthlySpend`}
                                   type="number"
-                                  min={0.01}
+                                  min={minSpend}
                                   step="0.01"
-                                  className="h-10 bg-background/80 border-border-subtle focus-visible:ring-[#007AFF]/50 focus-visible:border-[#007AFF]"
+                                  readOnly={isFreePlan}
+                                  className={cn(
+                                    'h-10 border-border-subtle focus-visible:ring-[#007AFF]/50 focus-visible:border-[#007AFF]',
+                                    isFreePlan
+                                      ? 'bg-muted/60 text-muted-foreground cursor-not-allowed'
+                                      : 'bg-background/80',
+                                  )}
                                   {...spendDetailsForm.register(`entries.${toolId}.monthlySpend`, {
                                     valueAsNumber: true,
                                   })}
                                 />
+                                {isFreePlan && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Free plans don&apos;t generate savings — add your paid tools for a meaningful audit.
+                                  </p>
+                                )}
                                 {spendDetailsForm.formState.errors.entries?.[toolId]?.monthlySpend && (
                                   <p className="text-sm text-destructive">
                                     {spendDetailsForm.formState.errors.entries[toolId]?.monthlySpend?.message}
@@ -451,6 +521,12 @@ export default function AuditPage() {
                         );
                       })}
                     </div>
+
+                    {submitError && (
+                      <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                        {submitError}
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between pt-4 border-t border-border-subtle">
                       <Button type="button" variant="ghost" onClick={() => setStep(2)} className="rounded-full px-6 text-muted-foreground hover:text-foreground">

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { CheckCircle2 } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -139,6 +140,11 @@ export default async function ResultPage({ params }: ResultPageProps) {
   }
 
   const auditPayload = buildAuditResultPayload(audit);
+  const hasRecommendations = audit.recommendations.length > 0;
+  const singleSelectedTool = audit.tools.length === 1 ? audit.tools[0] : null;
+  const singleToolName = singleSelectedTool
+    ? TOOL_NAME_BY_ID[singleSelectedTool.toolId] || singleSelectedTool.toolId
+    : null;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden pt-[100px] pb-20 px-4">
@@ -171,8 +177,19 @@ export default async function ResultPage({ params }: ResultPageProps) {
               </div>
             ) : (
               <div className="rounded-xl border border-border-subtle bg-background/40 p-6 relative overflow-hidden">
-                <p className="text-xl font-semibold text-foreground">You&apos;re spending optimally.</p>
-                <p className="mt-2 text-muted-foreground">No meaningful savings opportunities were identified in this audit. Your current stack is perfectly matched to your team size.</p>
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 size-6 text-emerald-500" />
+                  <div>
+                    <p className="text-xl font-semibold text-foreground">Your stack looks good</p>
+                    <p className="mt-2 text-muted-foreground">
+                      No major savings opportunities found with your current setup. Full breakdown is below.
+                    </p>
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      As your team grows come back for a re-audit — opportunities change with team size and tool
+                      usage.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>
@@ -184,40 +201,53 @@ export default async function ResultPage({ params }: ResultPageProps) {
             <CardDescription className="text-base mt-2">Detailed actions for each tool in your current stack.</CardDescription>
           </CardHeader>
           <CardContent className="p-6 md:p-8">
-            <div className="grid gap-4 md:grid-cols-2">
-              {audit.recommendations.map((recommendation) => (
-                <div key={`${recommendation.toolId}-${recommendation.currentPlanId}`} className={`rounded-xl border p-5 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 ${CARD_TINT_CLASSES[recommendation.recommendedAction]}`}>
-                  <div className="flex items-center justify-between gap-2 mb-4">
-                    <p className="font-bold text-foreground text-lg">
-                      {TOOL_NAME_BY_ID[recommendation.toolId] || recommendation.toolId}
-                    </p>
-                    <span
-                      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold tracking-wide ${ACTION_BADGE_CLASSES[recommendation.recommendedAction]}`}
-                    >
-                      {recommendation.recommendedAction.toUpperCase()}
-                    </span>
-                  </div>
+            {hasRecommendations ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                {audit.recommendations.map((recommendation) => (
+                  <div key={`${recommendation.toolId}-${recommendation.currentPlanId}`} className={`rounded-xl border p-5 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 ${CARD_TINT_CLASSES[recommendation.recommendedAction]}`}>
+                    <div className="flex items-center justify-between gap-2 mb-4">
+                      <p className="font-bold text-foreground text-lg">
+                        {TOOL_NAME_BY_ID[recommendation.toolId] || recommendation.toolId}
+                      </p>
+                      <span
+                        className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold tracking-wide ${ACTION_BADGE_CLASSES[recommendation.recommendedAction]}`}
+                      >
+                        {recommendation.recommendedAction.toUpperCase()}
+                      </span>
+                    </div>
 
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Current plan:</span>
-                      <span className="font-medium text-foreground">{recommendation.currentPlanId}</span>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Current plan:</span>
+                        <span className="font-medium text-foreground">{recommendation.currentPlanId}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Current cost:</span>
+                        <span className="font-medium text-foreground">${recommendation.currentMonthlyCost}/mo</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Current cost:</span>
-                      <span className="font-medium text-foreground">${recommendation.currentMonthlyCost}/mo</span>
+
+                    <div className="pt-4 border-t border-border-subtle">
+                      <p className="text-sm font-semibold text-emerald-500 mb-2 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[16px]">trending_down</span> Savings: ${recommendation.monthlySavings}/mo
+                      </p>
+                      <p className="text-sm leading-relaxed text-muted-foreground">{recommendation.reasoning}</p>
                     </div>
                   </div>
-                  
-                  <div className="pt-4 border-t border-border-subtle">
-                    <p className="text-sm font-semibold text-emerald-500 mb-2 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[16px]">trending_down</span> Savings: ${recommendation.monthlySavings}/mo
-                    </p>
-                    <p className="text-sm leading-relaxed text-muted-foreground">{recommendation.reasoning}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-5">
+                <p className="font-semibold text-foreground">
+                  {singleToolName ? `${singleToolName} looks correctly configured.` : 'No per-tool action needed right now.'}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {singleToolName
+                    ? `This audit has one selected tool and no billable optimization signals, so there is no per-tool recommendation to show. Add paid tools or higher-seat plans to surface actionable savings opportunities.`
+                    : 'Your current inputs did not trigger billable optimization rules. As your team size or paid tool mix changes, rerun the audit for updated recommendations.'}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
