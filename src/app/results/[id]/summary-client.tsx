@@ -56,8 +56,17 @@ export function SummaryClient({ auditPayload, initialSummary }: SummaryClientPro
   }, [auditPayload, initialSummary]);
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Generating your personalized summary...</p>;
+    return (
+      <div className="flex items-center gap-3 text-muted-foreground animate-pulse">
+        <span className="material-symbols-outlined text-[#007AFF] animate-spin" style={{ animationDuration: '3s' }}>sync</span>
+        <p className="text-base font-medium">Synthesizing optimization insights...</p>
+      </div>
+    );
   }
 
-  return <p className="text-sm leading-7 text-foreground">{summary}</p>;
+  return (
+    <div className="prose prose-invert max-w-none">
+      <p className="text-base leading-relaxed text-foreground/90 font-medium">{summary}</p>
+    </div>
+  );
 }
