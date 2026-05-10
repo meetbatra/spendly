@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_LINKS = [
   { name: "Platform", href: "#platform" },
@@ -35,6 +34,18 @@ export function Navbar() {
     return () => observer.disconnect();
   }, []);
 
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      const targetId = href.substring(1);
+      const elem = document.getElementById(targetId);
+      if (elem) {
+        elem.scrollIntoView({ behavior: "smooth" });
+        window.history.pushState(null, "", href);
+      }
+    }
+  };
+
   return (
     <nav className="bg-surface-dim/80 backdrop-blur-md border-b border-border-subtle flex justify-between items-center px-6 md:px-12 py-4 w-full fixed top-0 z-50 transition-colors">
       <div className="flex items-center gap-2">
@@ -51,6 +62,7 @@ export function Navbar() {
             <Link
               key={link.name}
               href={link.href}
+              onClick={(e) => handleScroll(e, link.href)}
               className={`px-3 rounded-md transition-all hover:text-foreground hover:bg-foreground/5 ${
                 isActive
                   ? "text-[#007AFF] font-bold border-b-2 border-[#007AFF] pb-1 pt-2"
@@ -64,7 +76,6 @@ export function Navbar() {
       </div>
 
       <div className="flex items-center gap-4">
-        <ThemeToggle />
         <Link href="/audit" className="bg-[#007AFF] text-white font-semibold text-sm px-6 py-2.5 rounded-full hover:bg-blue-600 transition-colors shadow-[0_0_15px_rgba(0,122,255,0.3)] hidden sm:block">
           Audit My Stack
         </Link>
