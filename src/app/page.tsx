@@ -10,7 +10,7 @@ export default function Home() {
       {/* Main Content Canvas */}
       <main className="flex-grow pt-[80px] w-full max-w-[1440px] mx-auto">
         {/* Hero Section */}
-        <section id="platform" className="relative px-4 md:px-12 py-16 md:py-[120px] overflow-hidden">
+        <section id="platform" className="relative px-4 md:px-12 py-16 md:py-[120px] overflow-hidden scroll-mt-[80px]">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(150,150,150,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(150,150,150,0.1)_1px,transparent_1px)] bg-[size:40px_40px] opacity-50 pointer-events-none"></div>
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#007AFF] rounded-full blur-[150px] opacity-[0.08] pointer-events-none"></div>
           
@@ -44,7 +44,7 @@ export default function Home() {
         </section>
 
         {/* How It Works Section */}
-        <section id="solutions" className="px-4 md:px-12 py-16 border-t border-border-subtle bg-surface-dim/30">
+        <section id="solutions" className="px-4 md:px-12 py-16 border-t border-border-subtle bg-surface-dim/30 scroll-mt-[80px]">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">Precision Intelligence, Zero Effort</h2>
@@ -86,7 +86,7 @@ export default function Home() {
         </section>
 
         {/* Savings Showcase Section */}
-        <section id="ai-audit" className="px-4 md:px-12 py-16">
+        <section id="ai-audit" className="px-4 md:px-12 py-16 scroll-mt-[80px]">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-end mb-8">
               <div>
@@ -150,7 +150,7 @@ export default function Home() {
         </section>
 
         {/* Bottom CTA */}
-        <section id="pricing" className="px-4 md:px-12 py-[120px] relative overflow-hidden">
+        <section id="pricing" className="px-4 md:px-12 py-[120px] relative overflow-hidden scroll-mt-[80px]">
           <div className="absolute inset-0 bg-[#007AFF]/5 pointer-events-none"></div>
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[#007AFF] rounded-[100%] blur-[120px] opacity-[0.05] pointer-events-none"></div>
           <div className="max-w-3xl mx-auto text-center relative z-10 border border-border-subtle bg-surface-dim/80 backdrop-blur-md rounded-2xl p-12 shadow-[0_20px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.4)]">

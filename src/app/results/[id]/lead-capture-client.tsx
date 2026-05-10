@@ -57,43 +57,50 @@ export function LeadCaptureClient({ auditId, teamSize }: LeadCaptureClientProps)
 
   if (submitted) {
     return (
-      <div className="rounded-xl border border-border bg-muted/40 p-4 text-sm text-foreground">
+      <div className="rounded-xl border border-border-subtle bg-surface-dim/30 p-6 text-sm text-foreground flex items-center gap-3">
+        <span className="material-symbols-outlined text-[#007AFF]">check_circle</span>
         Thanks. Your details were saved and we sent a confirmation email if delivery is enabled.
       </div>
     );
   }
 
   return (
-    <form className="space-y-4" onSubmit={onSubmit}>
+    <form className="space-y-5" onSubmit={onSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="lead-email">Work Email</Label>
+        <Label htmlFor="lead-email" className="text-muted-foreground font-semibold">Work Email</Label>
         <Input
           id="lead-email"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required
+          className="bg-[#007AFF]/[0.02] border-[#007AFF]/20 focus-visible:ring-[#007AFF]/40 h-12"
+          placeholder="you@company.com"
         />
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="lead-company">Company Name (optional)</Label>
+          <Label htmlFor="lead-company" className="text-muted-foreground font-semibold">Company Name (optional)</Label>
           <Input
             id="lead-company"
             type="text"
             value={companyName}
             onChange={(event) => setCompanyName(event.target.value)}
+            className="bg-[#007AFF]/[0.02] border-[#007AFF]/20 focus-visible:ring-[#007AFF]/40 h-12"
+            placeholder="Acme Inc"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="lead-role">Role (optional)</Label>
+          <Label htmlFor="lead-role" className="text-muted-foreground font-semibold">Role (optional)</Label>
           <Input
             id="lead-role"
             type="text"
             value={role}
             onChange={(event) => setRole(event.target.value)}
+            className="bg-[#007AFF]/[0.02] border-[#007AFF]/20 focus-visible:ring-[#007AFF]/40 h-12"
+            placeholder="CTO"
           />
         </div>
       </div>
@@ -110,9 +117,14 @@ export function LeadCaptureClient({ auditId, teamSize }: LeadCaptureClientProps)
         />
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-destructive font-medium">{error}</p>}
 
-      <Button type="submit" size="lg" disabled={submitting}>
+      <Button 
+        type="submit" 
+        size="lg" 
+        disabled={submitting}
+        className="w-full sm:w-auto h-12 rounded-full bg-[#007AFF] px-8 text-sm font-semibold text-white transition hover:bg-blue-600 shadow-[0_0_15px_rgba(0,122,255,0.3)] mt-2"
+      >
         {submitting ? 'Submitting...' : 'Get Follow-up'}
       </Button>
     </form>

@@ -28,10 +28,17 @@ interface StoredAudit {
 }
 
 const ACTION_BADGE_CLASSES: Record<AuditRecommendation['recommendedAction'], string> = {
-  downgrade: 'bg-amber-100 text-amber-800 border-amber-200',
-  switch: 'bg-blue-100 text-blue-800 border-blue-200',
-  consolidate: 'bg-orange-100 text-orange-800 border-orange-200',
-  keep: 'bg-green-100 text-green-800 border-green-200',
+  downgrade: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+  switch: 'bg-blue-500/10 text-[#007AFF] border-blue-500/20',
+  consolidate: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+  keep: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+};
+
+const CARD_TINT_CLASSES: Record<AuditRecommendation['recommendedAction'], string> = {
+  downgrade: 'border-amber-500/10 bg-amber-500/[0.02] hover:border-amber-500/30 hover:bg-amber-500/[0.05]',
+  switch: 'border-blue-500/10 bg-blue-500/[0.02] hover:border-blue-500/30 hover:bg-blue-500/[0.05]',
+  consolidate: 'border-orange-500/10 bg-orange-500/[0.02] hover:border-orange-500/30 hover:bg-orange-500/[0.05]',
+  keep: 'border-emerald-500/10 bg-emerald-500/[0.02] hover:border-emerald-500/30 hover:bg-emerald-500/[0.05]',
 };
 
 const TOOL_NAME_BY_ID = Object.fromEntries(
@@ -134,64 +141,80 @@ export default async function ResultPage({ params }: ResultPageProps) {
   const auditPayload = buildAuditResultPayload(audit);
 
   return (
-    <div className="min-h-screen bg-background px-4 py-10">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Audit Results</CardTitle>
-            <CardDescription>Share ID: {audit.shareId}</CardDescription>
-          </CardHeader>
-          <CardContent>
+    <div className="min-h-screen bg-background relative overflow-hidden pt-[100px] pb-20 px-4">
+      {/* Background elements */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(150,150,150,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(150,150,150,0.1)_1px,transparent_1px)] bg-[size:40px_40px] opacity-50 pointer-events-none"></div>
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-[#007AFF] rounded-full blur-[150px] opacity-[0.05] pointer-events-none"></div>
+
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 relative z-10">
+        <div className="space-y-3 text-center mb-6">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Audit Results</h1>
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+            Share ID: <span className="font-mono bg-background/50 px-2 py-1 rounded border border-border-subtle">{audit.shareId}</span>
+          </p>
+        </div>
+
+        <Card className="border-border-subtle bg-surface-dim/50 backdrop-blur-md shadow-xl overflow-hidden">
+          <CardContent className="p-6 md:p-8">
             {audit.totalMonthlySavings > 0 ? (
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-xl border border-green-200 bg-green-50 p-5">
-                  <p className="text-xs uppercase tracking-wide text-green-700">Monthly Savings</p>
-                  <p className="mt-2 text-4xl font-semibold text-green-700">${audit.totalMonthlySavings}</p>
+                <div className="rounded-xl border border-border-subtle bg-background/40 p-6 relative overflow-hidden group hover:border-[#007AFF]/50 transition-colors">
+                  <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(0,122,255,0.1),transparent)] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-2">Monthly Savings</p>
+                  <p className="text-5xl font-bold text-foreground tracking-tight">${audit.totalMonthlySavings}</p>
                 </div>
-                <div className="rounded-xl border border-green-200 bg-green-50 p-5">
-                  <p className="text-xs uppercase tracking-wide text-green-700">Annual Savings</p>
-                  <p className="mt-2 text-4xl font-semibold text-green-700">${audit.totalAnnualSavings}</p>
+                <div className="rounded-xl border border-border-subtle bg-background/40 p-6 relative overflow-hidden group hover:border-[#007AFF]/50 transition-colors">
+                  <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(0,122,255,0.1),transparent)] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-2">Annual Savings</p>
+                  <p className="text-5xl font-bold text-foreground tracking-tight">${audit.totalAnnualSavings}</p>
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl border border-green-200 bg-green-50 p-5 text-green-800">
-                <p className="text-lg font-medium">You&apos;re spending well.</p>
-                <p className="mt-1 text-sm">No meaningful savings opportunities were identified in this audit.</p>
+              <div className="rounded-xl border border-border-subtle bg-background/40 p-6 relative overflow-hidden">
+                <p className="text-xl font-semibold text-foreground">You&apos;re spending optimally.</p>
+                <p className="mt-2 text-muted-foreground">No meaningful savings opportunities were identified in this audit. Your current stack is perfectly matched to your team size.</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Per-Tool Recommendations</CardTitle>
-            <CardDescription>Detailed actions for each tool in your current stack.</CardDescription>
+        <Card className="border-border-subtle bg-surface-dim/50 backdrop-blur-md shadow-xl overflow-hidden">
+          <CardHeader className="p-6 md:p-8 pb-0">
+            <CardTitle className="text-2xl">Per-Tool Recommendations</CardTitle>
+            <CardDescription className="text-base mt-2">Detailed actions for each tool in your current stack.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6 md:p-8">
             <div className="grid gap-4 md:grid-cols-2">
               {audit.recommendations.map((recommendation) => (
-                <div key={`${recommendation.toolId}-${recommendation.currentPlanId}`} className="rounded-xl border border-border p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-semibold text-foreground">
+                <div key={`${recommendation.toolId}-${recommendation.currentPlanId}`} className={`rounded-xl border p-5 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 ${CARD_TINT_CLASSES[recommendation.recommendedAction]}`}>
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <p className="font-bold text-foreground text-lg">
                       {TOOL_NAME_BY_ID[recommendation.toolId] || recommendation.toolId}
                     </p>
                     <span
-                      className={`inline-flex rounded-full border px-2 py-1 text-xs font-medium ${ACTION_BADGE_CLASSES[recommendation.recommendedAction]}`}
+                      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold tracking-wide ${ACTION_BADGE_CLASSES[recommendation.recommendedAction]}`}
                     >
-                      {recommendation.recommendedAction}
+                      {recommendation.recommendedAction.toUpperCase()}
                     </span>
                   </div>
 
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Current plan: <span className="text-foreground">{recommendation.currentPlanId}</span>
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Current monthly cost: <span className="text-foreground">${recommendation.currentMonthlyCost}</span>
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-green-700">
-                    Monthly savings: ${recommendation.monthlySavings}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{recommendation.reasoning}</p>
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Current plan:</span>
+                      <span className="font-medium text-foreground">{recommendation.currentPlanId}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Current cost:</span>
+                      <span className="font-medium text-foreground">${recommendation.currentMonthlyCost}/mo</span>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-border-subtle">
+                    <p className="text-sm font-semibold text-emerald-500 mb-2 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[16px]">trending_down</span> Savings: ${recommendation.monthlySavings}/mo
+                    </p>
+                    <p className="text-sm leading-relaxed text-muted-foreground">{recommendation.reasoning}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -199,44 +222,49 @@ export default async function ResultPage({ params }: ResultPageProps) {
         </Card>
 
         {audit.totalMonthlySavings > 500 && (
-          <Card className="border-blue-200 bg-blue-50">
-            <CardHeader>
-              <CardTitle>Credex Opportunity</CardTitle>
-              <CardDescription>
+          <Card className="border-[#007AFF]/30 bg-[#007AFF]/5 backdrop-blur-md shadow-[0_0_30px_rgba(0,122,255,0.1)] overflow-hidden relative">
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(0,122,255,0.1)_50%,transparent_75%)] bg-[length:250%_250%] animate-[gradient_3s_linear_infinite]"></div>
+            <CardHeader className="p-6 md:p-8 pb-0 relative z-10">
+              <CardTitle className="text-2xl text-[#007AFF] flex items-center gap-2">
+                <span className="material-symbols-outlined">diamond</span> Credex Opportunity
+              </CardTitle>
+              <CardDescription className="text-base mt-2">
                 You are in a high-savings profile. Credex can reduce AI costs further by selling discounted AI credits.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6 md:p-8 relative z-10">
               <a
                 href="https://credex.rocks"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+                className="inline-flex h-12 items-center justify-center rounded-full bg-[#007AFF] px-8 text-sm font-semibold text-white transition hover:bg-blue-600 shadow-[0_0_15px_rgba(0,122,255,0.3)] gap-2 group"
               >
-                Explore Credex Credits
+                Explore Credex Credits <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </a>
             </CardContent>
           </Card>
         )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>AI Summary</CardTitle>
-            <CardDescription>Personalized summary of your current optimization opportunities.</CardDescription>
+        <Card className="border-border-subtle bg-surface-dim/50 backdrop-blur-md shadow-xl overflow-hidden">
+          <CardHeader className="p-6 md:p-8 pb-0">
+            <CardTitle className="text-2xl flex items-center gap-2">
+               <span className="material-symbols-outlined text-[#007AFF]">auto_awesome</span> AI Summary
+            </CardTitle>
+            <CardDescription className="text-base mt-2">Personalized summary of your current optimization opportunities.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6 md:p-8">
             <SummaryClient auditPayload={auditPayload} initialSummary={audit.summary} />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Get Follow-up</CardTitle>
-            <CardDescription>
+        <Card className="border-border-subtle bg-surface-dim/50 backdrop-blur-md shadow-xl overflow-hidden mb-12">
+          <CardHeader className="p-6 md:p-8 pb-0">
+            <CardTitle className="text-2xl">Get Follow-up</CardTitle>
+            <CardDescription className="text-base mt-2">
               Leave your details and we&apos;ll send your audit details plus next-step recommendations.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6 md:p-8">
             <LeadCaptureClient auditId={audit.shareId} teamSize={audit.teamSize} />
           </CardContent>
         </Card>
