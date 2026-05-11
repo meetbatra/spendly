@@ -57,9 +57,14 @@ export function SummaryClient({ auditPayload, initialSummary }: SummaryClientPro
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3 text-muted-foreground animate-pulse">
-        <span className="material-symbols-outlined text-[#007AFF] animate-spin" style={{ animationDuration: '3s' }}>sync</span>
-        <p className="text-base font-medium">Synthesizing optimization insights...</p>
+      <div className="space-y-3">
+        <div className="h-4 w-40 rounded bg-[#007AFF]/20 animate-pulse" />
+        <div className="space-y-2">
+          <div className="h-3 w-full rounded bg-white/10 animate-pulse" />
+          <div className="h-3 w-[92%] rounded bg-white/10 animate-pulse" />
+          <div className="h-3 w-[86%] rounded bg-white/10 animate-pulse" />
+          <div className="h-3 w-[78%] rounded bg-white/10 animate-pulse" />
+        </div>
       </div>
     );
   }
