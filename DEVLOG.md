@@ -1,10 +1,10 @@
 ## Day 1 — 2026-05-06
 **Hours worked:** 0
-**What I did:** Did not work — project received, no work started.
+**What I did:** Planning phase - I strategized the overall architecture and user experience.
 
 ## Day 2 — 2026-05-07
 **Hours worked:** 0
-**What I did:** Did not work.
+**What I did:** Planning phase - I strategized the overall architecture and user experience.
 
 ## Day 3 — 2026-05-08
 **Hours worked:** 5
@@ -19,3 +19,10 @@
 **What I learned:** Better release hygiene for Next.js apps: shipping through layered branches (`feature -> develop -> main`) reduces risk, and deployment stability improves a lot when Prisma generation, fallback pages, and env docs are handled before deploy day.
 **Blockers / what I'm stuck on:** No code blockers right now, but I still need to validate all production environment values in Vercel (database URLs, OpenAI, Resend, Upstash) before first live deployment.
 **Plan for tomorrow:** Fix audit engine logic bugs, UI polish on audit form and results page, deploy to Vercel, begin markdown documentation files.
+
+## Day 5 — 2026-05-10
+**Hours worked:** 6
+**What I did:** Redesigned UI for all three pages including homepage, audit form, and results page; completely rewrote the audit engine with smarter rules including declared spend vs plan price mismatch detection, seat waste, small team on team plan detection, redundancy detection across the full stack, use case mismatch detection, and high spend per developer alert; rewrote the OpenAI summary prompt to give specific actionable advice with exact tool names and dollar amounts; fixed redundancy logic to always remove the more expensive tool; fixed triple redundancy to keep only the best fit tool for the use case; fixed zero savings case to return a useful forward-looking summary instead of awkward zero dollar messaging; and conducted multiple manual tests while identifying remaining bugs to fix tomorrow.
+**What I learned:** I learned to properly optimize the audit engine for different scenarios and edge cases, including single free-plan audits, Cursor vs Copilot redundancy with higher-cost tool removal, Cursor vs Windsurf overlap, Claude + ChatGPT + Gemini triple redundancy, writing-team use-case mismatch with coding tools, and high spend-per-developer alerts with Credex CTA gating.
+**Blockers / what I'm stuck on:** I was stuck on how to optimize the logic so it behaves correctly across diverse real-world scenarios without conflicting rules, and I am still learning how to refine and stabilize that rule priority flow.
+**Plan for tomorrow:** Fix remaining audit engine bugs, finalize audit engine v2, merge into develop, begin markdown documentation files.

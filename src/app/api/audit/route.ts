@@ -5,6 +5,7 @@ import type { AuditResult } from '@/types/audit';
 import { z } from 'zod';
 
 const auditSubmissionLimiter = createSlidingWindowRateLimit(10, '1 h', 'spendly:audit-submissions');
+const isAuditRateLimitEnabled = process.env.ENABLE_AUDIT_RATE_LIMIT === 'true';
 
 const toolEntrySchema = z.object({
   toolId: z.string().min(1),
@@ -51,7 +52,7 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  if (auditSubmissionLimiter) {
+  if (isAuditRateLimitEnabled && auditSubmissionLimiter) {
     const ip = getClientIp(request);
     const limit = await auditSubmissionLimiter.limit(ip);
 
