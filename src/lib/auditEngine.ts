@@ -152,9 +152,80 @@ export function runAudit(input: AuditInput): AuditResult {
   }
 
   const candidateMap = new Map<ToolId, RecommendationCandidate[]>();
+  const useCaseMismatchToolIds = new Set<ToolId>();
+
+  // Rule 5 (priority) — Use case mismatch must be evaluated first.
+  if (input.useCase === 'writing' || input.useCase === 'research') {
+    for (const codingTool of ['cursor', 'github-copilot'] as const) {
+      const item = entryByTool.get(codingTool);
+      if (!item) {
+        continue;
+      }
+
+      useCaseMismatchToolIds.add(codingTool);
+      addCandidate(
+        candidateMap,
+        buildCandidate({
+          ruleId: 'rule5_use_case_mismatch',
+          toolId: codingTool,
+          currentPlanId: item.planId,
+          currentMonthlyCost: item.monthlySpend,
+          recommendedAction: 'switch',
+          monthlySavings: roundCurrency(item.monthlySpend),
+          reasoning: `${PRICING_DATA[codingTool].displayName} is a coding assistant. For a ${input.useCase}-focused team it provides no value, so removing it saves $${roundCurrency(item.monthlySpend)}/month.`,
+        }),
+      );
+    }
+  }
+
+  if (input.useCase === 'data') {
+    for (const codingTool of ['cursor', 'windsurf'] as const) {
+      const item = entryByTool.get(codingTool);
+      if (!item) {
+        continue;
+      }
+
+      useCaseMismatchToolIds.add(codingTool);
+      addCandidate(
+        candidateMap,
+        buildCandidate({
+          ruleId: 'rule5_use_case_mismatch',
+          toolId: codingTool,
+          currentPlanId: item.planId,
+          currentMonthlyCost: item.monthlySpend,
+          recommendedAction: 'switch',
+          monthlySavings: roundCurrency(item.monthlySpend),
+          reasoning: `${PRICING_DATA[codingTool].displayName} is a coding assistant with limited value for a data-focused team, so removing it saves $${roundCurrency(item.monthlySpend)}/month.`,
+        }),
+      );
+    }
+  }
+
+  if (input.useCase === 'coding' && input.tools.length === 1 && entryByTool.has('gemini')) {
+    const gemini = entryByTool.get('gemini')!;
+    useCaseMismatchToolIds.add('gemini');
+
+    addCandidate(
+      candidateMap,
+      buildCandidate({
+        ruleId: 'rule5_use_case_mismatch',
+        toolId: 'gemini',
+        currentPlanId: gemini.planId,
+        currentMonthlyCost: gemini.monthlySpend,
+        recommendedAction: 'switch',
+        recommendedToolId: 'cursor',
+        monthlySavings: 0,
+        reasoning: `Gemini is a general-purpose assistant. A coding team should add a dedicated coding tool like Cursor or GitHub Copilot for better developer output; current immediate savings estimate is $0/month.`,
+      }),
+    );
+  }
 
   // Rule 1 — Declared spend vs plan price mismatch.
   for (const entry of auditableEntries) {
+    if (useCaseMismatchToolIds.has(entry.toolId)) {
+      continue;
+    }
+
     const plan = planByTool.get(entry.toolId);
     const expectedPlanCost = getExpectedPlanCost(entry, plan);
 
@@ -179,6 +250,10 @@ export function runAudit(input: AuditInput): AuditResult {
 
   // Rule 2 — Seat waste.
   for (const entry of auditableEntries) {
+    if (useCaseMismatchToolIds.has(entry.toolId)) {
+      continue;
+    }
+
     const plan = planByTool.get(entry.toolId);
     const seatPrice = getPlanSeatPrice(plan);
 
@@ -205,6 +280,10 @@ export function runAudit(input: AuditInput): AuditResult {
   // Rule 3 — Small team on team plan.
   if (input.teamSize <= 3) {
     for (const entry of auditableEntries) {
+      if (useCaseMismatchToolIds.has(entry.toolId)) {
+        continue;
+      }
+
       const plan = planByTool.get(entry.toolId);
       const seatPrice = getPlanSeatPrice(plan);
 
@@ -251,13 +330,13 @@ export function runAudit(input: AuditInput): AuditResult {
   }
 
   // Rule 4 — Redundancy detection across the whole stack.
-  const hasCursor = entryByTool.has('cursor');
-  const hasCopilot = entryByTool.has('github-copilot');
-  const hasWindsurf = entryByTool.has('windsurf');
-  const hasClaude = entryByTool.has('claude');
-  const hasChatGPT = entryByTool.has('chatgpt');
-  const hasGemini = entryByTool.has('gemini');
-  const hasOpenAiApi = entryByTool.has('openai-api');
+  const hasCursor = entryByTool.has('cursor') && !useCaseMismatchToolIds.has('cursor');
+  const hasCopilot = entryByTool.has('github-copilot') && !useCaseMismatchToolIds.has('github-copilot');
+  const hasWindsurf = entryByTool.has('windsurf') && !useCaseMismatchToolIds.has('windsurf');
+  const hasClaude = entryByTool.has('claude') && !useCaseMismatchToolIds.has('claude');
+  const hasChatGPT = entryByTool.has('chatgpt') && !useCaseMismatchToolIds.has('chatgpt');
+  const hasGemini = entryByTool.has('gemini') && !useCaseMismatchToolIds.has('gemini');
+  const hasOpenAiApi = entryByTool.has('openai-api') && !useCaseMismatchToolIds.has('openai-api');
 
   if ((input.useCase === 'coding' || input.useCase === 'mixed') && hasCursor && hasCopilot) {
     const cursor = entryByTool.get('cursor')!;
@@ -384,47 +463,6 @@ export function runAudit(input: AuditInput): AuditResult {
         }),
       );
     }
-  }
-
-  // Rule 5 — Use case mismatch.
-  if (input.useCase === 'writing' || input.useCase === 'research') {
-    for (const codingTool of ['cursor', 'github-copilot'] as const) {
-      const item = entryByTool.get(codingTool);
-      if (!item) {
-        continue;
-      }
-
-      addCandidate(
-        candidateMap,
-        buildCandidate({
-          ruleId: 'rule5_use_case_mismatch',
-          toolId: codingTool,
-          currentPlanId: item.planId,
-          currentMonthlyCost: item.monthlySpend,
-          recommendedAction: 'switch',
-          monthlySavings: roundCurrency(item.monthlySpend),
-          reasoning: `${PRICING_DATA[codingTool].displayName} is a coding assistant. For a ${input.useCase}-focused team it provides no value, so removing it saves $${roundCurrency(item.monthlySpend)}/month.`,
-        }),
-      );
-    }
-  }
-
-  if (input.useCase === 'coding' && input.tools.length === 1 && entryByTool.has('gemini')) {
-    const gemini = entryByTool.get('gemini')!;
-
-    addCandidate(
-      candidateMap,
-      buildCandidate({
-        ruleId: 'rule5_use_case_mismatch',
-        toolId: 'gemini',
-        currentPlanId: gemini.planId,
-        currentMonthlyCost: gemini.monthlySpend,
-        recommendedAction: 'switch',
-        recommendedToolId: 'cursor',
-        monthlySavings: 0,
-        reasoning: `Gemini is a general-purpose assistant. A coding team should add a dedicated coding tool like Cursor or GitHub Copilot for better developer output; current immediate savings estimate is $0/month.`,
-      }),
-    );
   }
 
   const recommendations: AuditRecommendation[] = [];

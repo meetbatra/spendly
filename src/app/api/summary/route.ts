@@ -12,6 +12,7 @@ Use no bullet points, no headers, and no markdown.
 Inputs:
 - Team size: {{teamSize}}
 - Primary use case: {{useCase}}
+- Total monthly savings (raw number): {{totalMonthlySavingsRaw}}
 - Total monthly savings: {{totalMonthlySavingsFormatted}}
 - Total annual savings: {{totalAnnualSavingsFormatted}}
 - Tools (current plan + declared spend): {{toolsContext}}
@@ -22,8 +23,10 @@ Requirements:
   Sentence 1 states the single biggest specific opportunity with exact dollar amounts and exact tool names, for example: "You're paying $150/month for ChatGPT Business but your 5 seats should only cost $100, so there's $50 in unexplained overspend worth investigating immediately."
   Sentence 2 explains the overall picture: total potential monthly and annual savings across all recommendations combined, and mentions the top two tools involved by name.
   Sentence 3 is the call to action:
+    - if totalMonthlySavings is 0, the final sentence must say something like: "Come back for a re-audit when your team grows or you add more paid tools."
     - if totalMonthlySavings exceeds $500, use exactly: "Credex sells discounted AI credits from companies that overforecast — you could capture even more savings at credex.rocks."
     - otherwise, use exactly: "Share this audit with your team lead this week and assign owners to each saving opportunity."
+- If totalMonthlySavings is 0, never tell the user to assign owners to saving opportunities because there are none.
 - Never use vague phrases like "optimize your workflow", "consider your options", or "significant opportunity".
 - Always use specific tool names and specific dollar amounts from the data provided.
 - Write like a sharp finance person giving direct advice to a founder, not a consultant writing a report.
@@ -102,6 +105,7 @@ function buildSummaryPrompt(audit: AuditResult): string {
   return SUMMARY_PROMPT_TEMPLATE
     .replace('{{teamSize}}', String(audit.input.teamSize))
     .replace('{{useCase}}', audit.input.useCase)
+    .replace('{{totalMonthlySavingsRaw}}', String(audit.totalMonthlySavings))
     .replace('{{totalMonthlySavingsFormatted}}', `$${audit.totalMonthlySavings}`)
     .replace('{{totalAnnualSavingsFormatted}}', `$${audit.totalAnnualSavings}`)
     .replace('{{toolsContext}}', toolsContext)
