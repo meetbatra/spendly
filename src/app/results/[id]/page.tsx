@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { BarChart3, CheckCircle2, Sparkles, TrendingDown } from 'lucide-react';
+import { BarChart3, CheckCircle2, Download, Sparkles, TrendingDown } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -207,9 +207,21 @@ export default async function ResultPage({ params }: ResultPageProps) {
       <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 relative z-10">
         <div className="space-y-3 text-center mb-2">
           <h1 className="text-4xl font-bold tracking-tight text-foreground">Audit Results</h1>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Share ID: <span className="font-mono bg-background/50 px-2 py-1 rounded border border-border-subtle">{audit.shareId}</span>
-          </p>
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+              Share ID:{' '}
+              <span className="font-mono bg-background/50 px-2 py-1 rounded border border-border-subtle">
+                {audit.shareId}
+              </span>
+            </p>
+            <a
+              href={`/api/report/${audit.shareId}`}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border-subtle bg-background/60 px-5 text-sm font-semibold text-foreground transition hover:border-[#007AFF]/60 hover:text-[#007AFF]"
+            >
+              <Download className="size-4" />
+              Download PDF Report
+            </a>
+          </div>
         </div>
 
         <div className="grid items-stretch gap-6 xl:grid-cols-12">
@@ -521,7 +533,7 @@ export default async function ResultPage({ params }: ResultPageProps) {
           </Card>
         )}
 
-        <div className="py-3">
+        <div className="py-3 flex flex-wrap items-start justify-center gap-3">
           <LeadCaptureClient auditId={audit.shareId} teamSize={audit.teamSize} />
         </div>
       </div>
