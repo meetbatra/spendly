@@ -48,7 +48,7 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">Precision Intelligence, Zero Effort</h2>
-              <p className="text-foreground/60 max-w-xl mx-auto text-lg">A clinical approach to reducing your SaaS overhead.</p>
+              <p className="text-foreground/60 max-w-xl mx-auto text-lg">Three capabilities that turn AI spend data into clear cost decisions.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -56,30 +56,30 @@ export default function Home() {
               <div className="bg-surface-dim border border-border-subtle rounded-xl p-8 hover:border-[#007AFF]/50 transition-colors group relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#007AFF]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="w-12 h-12 rounded-lg bg-surface-bright flex items-center justify-center mb-6 border border-border-subtle group-hover:border-[#007AFF]/30 transition-colors shadow-sm">
-                  <span className="material-symbols-outlined text-foreground/80 group-hover:text-[#007AFF] transition-colors">link</span>
+                  <span className="material-symbols-outlined text-foreground/80 group-hover:text-[#007AFF] transition-colors">rule</span>
                 </div>
-                <h3 className="text-xl font-medium text-foreground mb-3">Securely Link Accounts</h3>
-                <p className="text-foreground/60 leading-relaxed">Connect your financial systems securely with read-only access. We integrate instantly via Plaid and direct API endpoints.</p>
+                <h3 className="text-xl font-medium text-foreground mb-3">Instant Rule-Based Audit</h3>
+                <p className="text-foreground/60 leading-relaxed">Run a deterministic audit on team size, use case, plans, seats, and monthly spend to get exact per-tool savings recommendations.</p>
               </div>
               
               {/* Step 2 */}
               <div className="bg-surface-dim border border-border-subtle rounded-xl p-8 hover:border-[#007AFF]/50 transition-colors group relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#007AFF]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="w-12 h-12 rounded-lg bg-surface-bright flex items-center justify-center mb-6 border border-border-subtle group-hover:border-[#007AFF]/30 transition-colors shadow-sm">
-                  <span className="material-symbols-outlined text-foreground/80 group-hover:text-[#007AFF] transition-colors">analytics</span>
+                  <span className="material-symbols-outlined text-foreground/80 group-hover:text-[#007AFF] transition-colors">dashboard</span>
                 </div>
-                <h3 className="text-xl font-medium text-foreground mb-3">AI Analysis</h3>
-                <p className="text-foreground/60 leading-relaxed">Our proprietary engine scans millions of transactions globally to detect hidden fees, tier bloat, and orphaned subscriptions.</p>
+                <h3 className="text-xl font-medium text-foreground mb-3">Shareable Results Dashboard</h3>
+                <p className="text-foreground/60 leading-relaxed">Every audit produces a shareable results page with savings KPIs, per-tool actions, visual breakdowns, and a personalized AI summary.</p>
               </div>
               
               {/* Step 3 */}
               <div className="bg-surface-dim border border-border-subtle rounded-xl p-8 hover:border-[#007AFF]/50 transition-colors group relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#007AFF]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="w-12 h-12 rounded-lg bg-surface-bright flex items-center justify-center mb-6 border border-border-subtle group-hover:border-[#007AFF]/30 transition-colors shadow-sm">
-                  <span className="material-symbols-outlined text-foreground/80 group-hover:text-[#007AFF] transition-colors">cut</span>
+                  <span className="material-symbols-outlined text-foreground/80 group-hover:text-[#007AFF] transition-colors">picture_as_pdf</span>
                 </div>
-                <h3 className="text-xl font-medium text-foreground mb-3">Execute Savings</h3>
-                <p className="text-foreground/60 leading-relaxed">Review high-confidence recommendations and cancel unused tools with one click directly from the dashboard.</p>
+                <h3 className="text-xl font-medium text-foreground mb-3">Exportable Reports</h3>
+                <p className="text-foreground/60 leading-relaxed">Download a full PDF report and send a structured follow-up email report so decisions are easy to review with your team.</p>
               </div>
             </div>
           </div>
@@ -88,14 +88,11 @@ export default function Home() {
         {/* Savings Showcase Section */}
         <section id="ai-audit" className="px-4 md:px-12 py-16 scroll-mt-[80px]">
           <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-8">
+            <div className="mb-8">
               <div>
                 <h2 className="text-3xl font-bold text-foreground mb-2">Actionable Intelligence</h2>
                 <p className="text-foreground/60 text-lg">Real-time data visualized for immediate decision making.</p>
               </div>
-              <Link className="text-[#007AFF] hover:text-foreground transition-colors flex items-center gap-1 text-xs font-semibold uppercase tracking-wider mt-4 md:mt-0" href="#">
-                View Demo Report <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </Link>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[400px]">

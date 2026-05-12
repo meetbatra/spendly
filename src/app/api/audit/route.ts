@@ -5,7 +5,6 @@ import type { AuditResult } from '@/types/audit';
 import { z } from 'zod';
 
 const auditSubmissionLimiter = createSlidingWindowRateLimit(10, '1 h', 'spendly:audit-submissions');
-const isAuditRateLimitEnabled = process.env.ENABLE_AUDIT_RATE_LIMIT === 'true';
 
 const toolEntrySchema = z.object({
   toolId: z.string().min(1),
@@ -52,7 +51,17 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  if (isAuditRateLimitEnabled && auditSubmissionLimiter) {
+  if (!auditSubmissionLimiter) {
+    return Response.json(
+      {
+        error:
+          'Rate limiting is not configured. Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN.',
+      },
+      { status: 503 },
+    );
+  }
+
+  {
     const ip = getClientIp(request);
     const limit = await auditSubmissionLimiter.limit(ip);
 

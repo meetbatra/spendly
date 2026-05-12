@@ -9,16 +9,23 @@ import { Label } from '@/components/ui/label';
 interface LeadCaptureClientProps {
   auditId: string;
   teamSize: number;
+  showConsultationOption?: boolean;
 }
 
-export function LeadCaptureClient({ auditId, teamSize }: LeadCaptureClientProps) {
+export function LeadCaptureClient({
+  auditId,
+  teamSize,
+  showConsultationOption = false,
+}: LeadCaptureClientProps) {
   const [email, setEmail] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [role, setRole] = useState('');
   const [website, setWebsite] = useState('');
+  const [wantsConsultation, setWantsConsultation] = useState(showConsultationOption);
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submittedConsultation, setSubmittedConsultation] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -60,6 +67,7 @@ export function LeadCaptureClient({ auditId, teamSize }: LeadCaptureClientProps)
           teamSize,
           auditId,
           website,
+          wantsConsultation: showConsultationOption ? wantsConsultation : undefined,
         }),
       });
 
@@ -70,11 +78,13 @@ export function LeadCaptureClient({ auditId, teamSize }: LeadCaptureClientProps)
       }
 
       setSubmitted(true);
+      setSubmittedConsultation(showConsultationOption && wantsConsultation);
       setOpen(false);
       setEmail('');
       setCompanyName('');
       setRole('');
       setWebsite('');
+      setWantsConsultation(showConsultationOption);
     } catch {
       setError('Could not submit your information right now.');
     } finally {
@@ -99,7 +109,9 @@ export function LeadCaptureClient({ auditId, teamSize }: LeadCaptureClientProps)
       {submitted && (
         <p className="text-sm text-foreground/80 flex items-center gap-2">
           <span className="material-symbols-outlined text-[#007AFF] text-[18px]">check_circle</span>
-          Details saved. Confirmation email sent if delivery is enabled.
+          {submittedConsultation
+            ? 'Details saved. Confirmation email sent and your Credex consultation request was captured.'
+            : 'Details saved. Confirmation email sent if delivery is enabled.'}
         </p>
       )}
 
@@ -195,6 +207,20 @@ export function LeadCaptureClient({ auditId, teamSize }: LeadCaptureClientProps)
                 onChange={(event) => setWebsite(event.target.value)}
               />
             </div>
+
+            {showConsultationOption && (
+              <label className="flex items-start gap-3 rounded-xl border border-border-subtle bg-background/40 p-3">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 accent-[#007AFF]"
+                  checked={wantsConsultation}
+                  onChange={(event) => setWantsConsultation(event.target.checked)}
+                />
+                <span className="text-sm text-foreground/80">
+                  I want to book a Credex consultation to review this high-savings audit.
+                </span>
+              </label>
+            )}
 
             {error && <p className="text-sm text-destructive font-medium">{error}</p>}
 

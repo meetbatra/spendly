@@ -61,6 +61,19 @@ function formatUsd(value: number): string {
   }).format(value);
 }
 
+function buildCredexConsultationUrl(shareId: string): string {
+  const base = process.env.NEXT_PUBLIC_CREDEX_CONSULT_URL || 'https://credex.rocks';
+
+  try {
+    const url = new URL(base);
+    url.searchParams.set('source', 'spendly');
+    url.searchParams.set('auditId', shareId);
+    return url.toString();
+  } catch {
+    return base;
+  }
+}
+
 async function findAudit(shareId: string): Promise<StoredAudit | null> {
   if (!prisma) {
     return null;
@@ -122,6 +135,11 @@ export async function generateMetadata({ params }: ResultPageProps): Promise<Met
         description: 'Spendly audit results page.',
         url: canonicalUrl,
       },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'Spendly Audit Result',
+        description: 'Spendly audit results page.',
+      },
     };
   }
 
@@ -143,6 +161,11 @@ export async function generateMetadata({ params }: ResultPageProps): Promise<Met
       url: canonicalUrl,
       type: 'website',
     },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
   };
 }
 
@@ -163,13 +186,36 @@ export default async function ResultPage({ params }: ResultPageProps) {
   const currentMonthlySpend = Number(
     audit.tools.reduce((sum, tool) => sum + tool.monthlySpend, 0).toFixed(2),
   );
+
+  // Spend projection should reflect concrete per-tool actions and avoid stack-level
+  // estimate double-counting (for example, "high spend per developer" alerts).
+  const toolLevelSavingsByTool = new Map<string, number>();
+  for (const recommendation of audit.recommendations) {
+    const isStackEstimate = recommendation.reasoning.includes('per developer per month on AI tools');
+    if (isStackEstimate || recommendation.monthlySavings <= 0) {
+      continue;
+    }
+
+    const current = toolLevelSavingsByTool.get(recommendation.toolId) ?? 0;
+    toolLevelSavingsByTool.set(recommendation.toolId, Math.max(current, recommendation.monthlySavings));
+  }
+
+  const projectedMonthlySavings = Math.min(
+    currentMonthlySpend,
+    Number(
+      [...toolLevelSavingsByTool.values()]
+        .reduce((sum, value) => sum + value, 0)
+        .toFixed(2),
+    ),
+  );
   const projectedMonthlySpend = Math.max(
     0,
-    Number((currentMonthlySpend - audit.totalMonthlySavings).toFixed(2)),
+    Number((currentMonthlySpend - projectedMonthlySavings).toFixed(2)),
   );
+  const credexConsultationUrl = buildCredexConsultationUrl(audit.shareId);
   const savingsRecoveryRate =
     currentMonthlySpend > 0
-      ? Number(((audit.totalMonthlySavings / currentMonthlySpend) * 100).toFixed(1))
+      ? Number(((projectedMonthlySavings / currentMonthlySpend) * 100).toFixed(1))
       : 0;
 
   const recommendationsBySavings = [...audit.recommendations].sort(
@@ -320,9 +366,9 @@ export default async function ResultPage({ params }: ResultPageProps) {
           <CardContent className="p-6 md:p-8">
             {hasRecommendations ? (
               <div className="grid gap-4 lg:grid-cols-3 md:grid-cols-2">
-                {audit.recommendations.map((recommendation) => (
+                {audit.recommendations.map((recommendation, index) => (
                   <div
-                    key={`${recommendation.toolId}-${recommendation.currentPlanId}-${recommendation.recommendedAction}`}
+                    key={`${recommendation.toolId}-${recommendation.currentPlanId}-${recommendation.recommendedAction}-${index}`}
                     className={`rounded-xl border p-5 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 ${CARD_TINT_CLASSES[recommendation.recommendedAction]}`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-4">
@@ -389,13 +435,15 @@ export default async function ResultPage({ params }: ResultPageProps) {
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               {recommendationsWithSavings.length > 0 ? (
-                recommendationsWithSavings.slice(0, 6).map((recommendation) => {
+                recommendationsWithSavings.slice(0, 6).map((recommendation, index) => {
                   const widthPct =
                     maxToolSavings > 0
                       ? Math.max(6, (recommendation.monthlySavings / maxToolSavings) * 100)
                       : 0;
                   return (
-                    <div key={`${recommendation.toolId}-${recommendation.recommendedAction}`}>
+                    <div
+                      key={`${recommendation.toolId}-${recommendation.recommendedAction}-${recommendation.monthlySavings}-${index}`}
+                    >
                       <div className="mb-2 flex items-center justify-between text-sm">
                         <span className="font-medium text-foreground">
                           {TOOL_NAME_BY_ID[recommendation.toolId] || recommendation.toolId}
@@ -443,7 +491,10 @@ export default async function ResultPage({ params }: ResultPageProps) {
                   />
                   <div className="space-y-3">
                     {topThreeOpportunities.map((recommendation, index) => (
-                      <div key={`top-${recommendation.toolId}`} className="flex items-center justify-between text-sm">
+                      <div
+                        key={`top-${recommendation.toolId}-${recommendation.monthlySavings}-${index}`}
+                        className="flex items-center justify-between text-sm"
+                      >
                         <span className="text-foreground">
                           {index + 1}. {TOOL_NAME_BY_ID[recommendation.toolId] || recommendation.toolId}
                         </span>
@@ -518,23 +569,37 @@ export default async function ResultPage({ params }: ResultPageProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 relative z-10">
-              <a
-                href="https://credex.rocks"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex h-11 items-center justify-center rounded-full bg-[#007AFF] px-6 text-sm font-semibold text-white transition hover:bg-blue-600 shadow-[0_0_15px_rgba(0,122,255,0.3)] gap-2 group"
-              >
-                Explore Credex Credits{' '}
-                <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
-                  arrow_forward
-                </span>
-              </a>
+              <div className="flex flex-wrap items-center gap-3">
+                <a
+                  href={credexConsultationUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-11 items-center justify-center rounded-full bg-[#007AFF] px-6 text-sm font-semibold text-white transition hover:bg-blue-600 shadow-[0_0_15px_rgba(0,122,255,0.3)] gap-2 group"
+                >
+                  Book Credex Consultation{' '}
+                  <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
+                    arrow_forward
+                  </span>
+                </a>
+                <a
+                  href="https://credex.rocks"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-11 items-center justify-center rounded-full border border-[#007AFF]/40 px-6 text-sm font-semibold text-[#007AFF] transition hover:border-[#007AFF] hover:bg-[#007AFF]/10"
+                >
+                  Explore Credex Credits
+                </a>
+              </div>
             </CardContent>
           </Card>
         )}
 
         <div className="py-3 flex flex-wrap items-start justify-center gap-3">
-          <LeadCaptureClient auditId={audit.shareId} teamSize={audit.teamSize} />
+          <LeadCaptureClient
+            auditId={audit.shareId}
+            teamSize={audit.teamSize}
+            showConsultationOption={audit.totalMonthlySavings > 500}
+          />
         </div>
       </div>
     </div>

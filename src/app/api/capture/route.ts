@@ -15,6 +15,7 @@ const captureSchema = z.object({
   teamSize: z.number().int().min(1).optional(),
   auditId: z.string().min(1, 'auditId is required.'),
   website: z.string().optional(),
+  wantsConsultation: z.boolean().optional(),
 });
 
 const TOOL_NAME_BY_ID = Object.fromEntries(
@@ -80,6 +81,7 @@ function buildReportEmailHtml(params: {
   tools: ToolEntry[];
   recommendations: AuditRecommendation[];
   summary: string | null;
+  wantsConsultation?: boolean;
 }): string {
   const {
     reportUrl,
@@ -90,6 +92,7 @@ function buildReportEmailHtml(params: {
     tools,
     recommendations,
     summary,
+    wantsConsultation,
   } = params;
 
   const currentMonthlySpend = tools.reduce((sum, tool) => sum + tool.monthlySpend, 0);
@@ -192,6 +195,22 @@ function buildReportEmailHtml(params: {
         </td>
       </tr>`
     : '';
+
+  const outreachBlock =
+    totalMonthlySavings > 500
+      ? `
+      <tr>
+        <td style="padding: 18px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px;">
+          <p style="margin:0; font-size:14px; line-height:1.6; color:#1e3a8a;">
+            ${
+              wantsConsultation
+                ? 'Thanks for requesting a Credex consultation. A Credex team member will reach out with next steps based on your high-savings audit.'
+                : 'Because this audit shows high monthly savings potential, the Credex team may reach out to help you capture additional savings through discounted AI credits.'
+            }
+          </p>
+        </td>
+      </tr>`
+      : '';
 
   return `<!doctype html>
 <html>
@@ -330,6 +349,8 @@ function buildReportEmailHtml(params: {
 
             ${summaryBlock}
 
+            ${outreachBlock}
+
             <tr>
               <td style="padding: 8px 28px 28px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -356,8 +377,17 @@ function buildReportEmailText(params: {
   totalMonthlySavings: number;
   totalAnnualSavings: number;
   recommendations: AuditRecommendation[];
+  wantsConsultation?: boolean;
 }): string {
-  const { reportUrl, teamSize, useCase, totalMonthlySavings, totalAnnualSavings, recommendations } = params;
+  const {
+    reportUrl,
+    teamSize,
+    useCase,
+    totalMonthlySavings,
+    totalAnnualSavings,
+    recommendations,
+    wantsConsultation,
+  } = params;
   const topRecommendations = [...recommendations]
     .sort((a, b) => b.monthlySavings - a.monthlySavings)
     .slice(0, 3)
@@ -367,6 +397,13 @@ function buildReportEmailText(params: {
     })
     .join('\n');
 
+  const outreachNote =
+    totalMonthlySavings > 500
+      ? wantsConsultation
+        ? '\nCredex consultation requested: yes. The Credex team will reach out with next steps for this high-savings case.'
+        : '\nBecause this is a high-savings case, the Credex team may reach out to discuss discounted AI credit options.'
+      : '';
+
   return `Your full Spendly audit report is ready.
 
 Team: ${teamSize}
@@ -375,6 +412,8 @@ Potential savings: $${formatUsd(totalMonthlySavings)}/month ($${formatUsd(totalA
 
 Top opportunities:
 ${topRecommendations || '- No positive savings opportunities found yet.'}
+
+${outreachNote}
 
 Open interactive report:
 ${reportUrl}`;
@@ -486,6 +525,7 @@ export async function POST(request: Request): Promise<Response> {
           tools,
           recommendations,
           summary: audit.summary,
+          wantsConsultation: payload.wantsConsultation,
         });
         const text = buildReportEmailText({
           reportUrl,
@@ -494,6 +534,7 @@ export async function POST(request: Request): Promise<Response> {
           totalMonthlySavings: audit.totalMonthlySavings,
           totalAnnualSavings: audit.totalAnnualSavings,
           recommendations,
+          wantsConsultation: payload.wantsConsultation,
         });
 
         await resend.emails.send({
