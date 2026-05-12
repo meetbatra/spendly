@@ -58,4 +58,4 @@ Spendly needs short, URL-friendly IDs for share links (`/results/[shareId]`) tha
 
 ## Deployed URL
 
-`REPLACE WITH VERCEL URL`
+[`https://spendly-rose-one.vercel.app`](https://spendly-rose-one.vercel.app)
