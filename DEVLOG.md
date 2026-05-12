@@ -36,7 +36,7 @@
 
 ## Day 7 — 2026-05-12
 **Hours worked:** 4
-**What I did:** Built PDF report download feature using `react-pdf-renderer` on a feature branch and merged it into both `develop` and `main`; wrote all required documentation files at the repo root including `README.md`, `ARCHITECTURE.md`, `TESTS.md`, `PROMPTS.md`, `GTM.md`, `ECONOMICS.md`, `LANDING_COPY.md`, `METRICS.md`, and `REFLECTION.md`.
+**What I did:** On `feature/predeploy-bugfixes`, aligned landing-page feature messaging with real implemented capabilities, removed the “View Demo Report” CTA from the homepage analytics section, re-enabled and hardened audit submission rate limiting for production (always-on with explicit Upstash config checks), and verified rate-limit behavior on both `/api/audit` and `/api/capture` with repeated endpoint probes. Updated the results experience with Twitter card metadata, added a high-savings Credex consultation flow (CTA + follow-up dialog option), and updated follow-up email content to explicitly mention Credex outreach for high-savings cases. Fixed duplicate React key warnings in the results lists and corrected spend projection math so the “After” chart value is based on actionable per-tool savings instead of inflated aggregate estimates.
 **What I learned:** I learned how to properly structure a PDF report so the summary, savings highlights, and per-tool recommendations remain clear and readable in both on-screen and email-delivered formats.
 **Blockers / what I'm stuck on:** I did not face any major blockers today; the remaining work is routine deployment verification and final quality checks.
 **Plan for tomorrow:** None.
