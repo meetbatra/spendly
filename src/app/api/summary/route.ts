@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { z } from 'zod';
 
 import { PRICING_DATA } from '@/lib/pricingData';
+import { getPrisma } from '@/lib/prisma';
 import type { AuditResult } from '@/types/audit';
 
 export const SUMMARY_PROMPT_TEMPLATE = `You are Spendly's AI spend advisor.
@@ -129,6 +130,46 @@ function buildFallbackSummary(audit: AuditResult): string {
   return `For your ${audit.input.teamSize}-person ${audit.input.useCase} team, Spendly estimated potential savings of $${audit.totalMonthlySavings}/month ($${audit.totalAnnualSavings}/year). ${recommendationLine} Prioritize the largest monthly savings first, then re-check plans quarterly as usage changes. ${getCtaSentence(audit.totalMonthlySavings)}`;
 }
 
+async function getStoredSummary(shareId: string): Promise<string | null> {
+  if (!process.env.DATABASE_URL) {
+    return null;
+  }
+
+  try {
+    const prisma = getPrisma();
+    const audit = await prisma.audit.findUnique({
+      where: { shareId },
+      select: { summary: true },
+    });
+
+    const summary = audit?.summary?.trim();
+    return summary && summary.length > 0 ? summary : null;
+  } catch {
+    return null;
+  }
+}
+
+async function persistSummary(shareId: string, summary: string): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    return;
+  }
+
+  try {
+    const prisma = getPrisma();
+    await prisma.audit.updateMany({
+      where: {
+        shareId,
+        summary: null,
+      },
+      data: {
+        summary,
+      },
+    });
+  } catch {
+    // Non-blocking: summary generation should still succeed for the client.
+  }
+}
+
 export async function POST(request: Request): Promise<Response> {
   let parsedAudit: AuditResult;
 
@@ -146,9 +187,15 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  const storedSummary = await getStoredSummary(parsedAudit.shareId);
+  if (storedSummary) {
+    return Response.json({ summary: storedSummary, source: 'db' }, { status: 200 });
+  }
+
   const fallbackSummary = buildFallbackSummary(parsedAudit);
 
   if (!process.env.OPENAI_API_KEY) {
+    await persistSummary(parsedAudit.shareId, fallbackSummary);
     return Response.json({ summary: fallbackSummary, source: 'fallback' }, { status: 200 });
   }
 
@@ -169,6 +216,7 @@ export async function POST(request: Request): Promise<Response> {
       return Response.json({ summary: fallbackSummary, source: 'fallback' }, { status: 200 });
     }
 
+    await persistSummary(parsedAudit.shareId, summary);
     return Response.json({ summary, source: 'ai' }, { status: 200 });
   } catch {
     return Response.json({ summary: fallbackSummary, source: 'fallback' }, { status: 200 });
